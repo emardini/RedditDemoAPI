@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using RedditDemoAPI.Core;
 using System.Collections.Concurrent;
 
 namespace RedditDemoAPI;
@@ -7,7 +8,7 @@ public class RedditStatsService : IRedditStatsProducer, IRedditStatsReader
 {
     class InactivePostStats : PostStats
     {
-        public override Status Status { get; protected set; } = Status.Active;
+        public override Status Status { get; protected set; } = Status.Inactive;
     }
 
     private readonly ILogger<RedditStatsService> logger;
@@ -24,7 +25,8 @@ public class RedditStatsService : IRedditStatsProducer, IRedditStatsReader
     {
         var postResult = postStats.AddOrUpdate(stats.PostId,
            new InactivePostStats { PostId = stats.PostId, PostTitle = stats.PostTitle, Score = stats.Score, AddedTimestamp = stats.AddedTimestamp },
-           (key, oldValue) => {
+           (key, oldValue) =>
+           {
                //If the post has been deactivated by a previous thread, let's keep it Inactive but increase the score
                return new InactivePostStats { PostId = stats.PostId, PostTitle = stats.PostTitle, Score = oldValue.Score + stats.Score, AddedTimestamp = stats.AddedTimestamp };
            });
@@ -36,7 +38,8 @@ public class RedditStatsService : IRedditStatsProducer, IRedditStatsReader
     {
         var postResult = postStats.AddOrUpdate(stats.PostId,
             new PostStats { PostId = stats.PostId, PostTitle = stats.PostTitle, Score = stats.Score, AddedTimestamp = DateTime.UtcNow },
-            (key, oldValue) => {
+            (key, oldValue) =>
+            {
                 //If the post has been deactivated by a previous thread, let's keep it Inactive but increase the score
                 return oldValue.Status == Status.Active ?
                     new PostStats { PostId = stats.PostId, PostTitle = stats.PostTitle, Score = oldValue.Score + stats.Score, AddedTimestamp = stats.AddedTimestamp } :
@@ -47,9 +50,10 @@ public class RedditStatsService : IRedditStatsProducer, IRedditStatsReader
 
     public void ReportUsersStats(UserPostReport stats)
     {
-        var userResult = userStats.AddOrUpdate(stats.Author, 
-            new UserStats { AddedTimestamp = stats.AddedTimestamp, Author = stats.Author, NbPosts = stats.NbPosts }, 
-            (key, oldValue) => {
+        var userResult = userStats.AddOrUpdate(stats.Author,
+            new UserStats { AddedTimestamp = stats.AddedTimestamp, Author = stats.Author, NbPosts = stats.NbPosts },
+            (key, oldValue) =>
+            {
                 return new UserStats { AddedTimestamp = stats.AddedTimestamp, Author = stats.Author, NbPosts = oldValue.NbPosts + stats.NbPosts };
             });
         logger.LogInformation("Post reported: {user}", JsonConvert.SerializeObject(stats));
@@ -67,14 +71,14 @@ public class RedditStatsService : IRedditStatsProducer, IRedditStatsReader
             .Take(taken);
     }
 
-    public IEnumerable<PostStats> GetTopPoststatsByPercentage(int percentage = 10)
+    public IEnumerable<PostStats> GetTopPostStatsByPercentage(int percentage = 10)
     {
         if (percentage <= 0 || percentage > 100) throw new ArgumentException("Percentage value should be between 1 and 100", nameof(percentage));
 
         var nbOfItems = postStats.Count;
         var taken = (int)Math.Ceiling(nbOfItems * 100.00 / percentage);
         return postStats.Values
-            .Where(p =>  p.Status == Status.Active)
+            .Where(p => p.Status == Status.Active)
             .OrderByDescending(s => s.Score)
             .ThenBy(s => s.AddedTimestamp)
             .Take(taken);

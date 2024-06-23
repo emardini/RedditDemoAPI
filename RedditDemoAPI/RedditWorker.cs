@@ -1,27 +1,28 @@
 ﻿using Reddit;
 using Reddit.Controllers;
 using Reddit.Controllers.EventArgs;
+using RedditDemoAPI.Core;
 
 namespace RedditDemoAPI;
 
 public class RedditWorker : IHostedService
 {
-    private readonly ILogger<RedditWorker> _logger;
+    private readonly ILogger<RedditWorker> logger;
     private readonly IRedditStatsProducer redditStatsProducer;
+    private readonly RedditClient redditClient;
 
-    public RedditWorker(ILogger<RedditWorker> logger, IRedditStatsProducer redditStatsProducer)
+    public RedditWorker(ILogger<RedditWorker> logger, IRedditStatsProducer redditStatsProducer, RedditClient redditClient)
     {
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         this.redditStatsProducer = redditStatsProducer ?? throw new ArgumentNullException(nameof(redditStatsProducer));
+        this.redditClient = redditClient ?? throw new ArgumentNullException(nameof(redditClient));
     }
 
     public Task StartAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation($"{nameof(RedditWorker)} Hosted Service running.");
-
-        var r = new RedditClient("ApiDemo001", "98461062849579-HAvU7PxDt2a57YViiLLDODhZoIEtZA", "n1BJapPbXIqBFcdHsZE0vYd_5lPFSw", "eyJhbGciOiJSUzI1NiIsImtpZCI6IlNIQTI1NjpzS3dsMnlsV0VtMjVmcXhwTU40cWY4MXE2OWFFdWFyMnpLMUdhVGxjdWNZIiwidHlwIjoiSldUIn0.eyJzdWIiOiJ1c2VyIiwiZXhwIjoxNzE5MTk1NzU3Ljg5OTk4MywiaWF0IjoxNzE5MTA5MzU3Ljg5OTk4MywianRpIjoiZEJKTlYtaV8wek9OQUtIcmsxbVNBNS1tTUNzeC13IiwiY2lkIjoiSGhiTURqMV9EZThUTWYyajJFaU4wUSIsImxpZCI6InQyX3l3Z2R5bXE3ZiIsImFpZCI6InQyX3l3Z2R5bXE3ZiIsImxjYSI6MTcxMzg2ODM2NTc4Niwic2NwIjoiZUp5S1ZpcEtUVXhSaWdVRUFBRF9fd3ZFQXBrIiwicmNpZCI6Im5sYnAzT2M1VE8tUzJKckRxdHgwYlFDLVlFX2ljMVB2Z2FxWGxmSHhMazQiLCJmbG8iOjh9.jXlUei4qRWH-_qCPV2iHCa26bIHnl-wGVJV0a-DxYAV1pSsFprq0xqHqHx0UlWe9eqpcwwymlOluSSj7d-kNdiD4UhY8XfLXRA5NN5DRyJcWfyAc-oNWrxKqIvLo3UiygoxTMqk2XhwpPphDaEQkGK43DlK_xZxJ_qtmVlLl7nc-wg6PxAMoJBiDLsOdpnq0WifVPRd_F4Uz7_d0t_rfU1iN4LOt0ezW7bdifHPik5F4Lx3deu4cNmO1q774OOp3oM2ptOSPRCHTKtoipNNLg4MKagWfJpcPVRgboP3TAT2phtlH_mdNmnbW_lH5c0kR-yxZM13Z7KtYFvY-eNn2Iw");
-
-        var monitoredSubReddit = r.Subreddit("AskReddit").About();
+        logger.LogInformation($"{nameof(RedditWorker)} Hosted Service running.");
+       
+        var monitoredSubReddit = redditClient.Subreddit("AskReddit").About();
 
         monitoredSubReddit.Posts.MonitorNew();
         monitoredSubReddit.Posts.NewUpdated += NewOrDeletePostEventHandler;
@@ -62,7 +63,7 @@ public class RedditWorker : IHostedService
 
     public Task StopAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation($"{nameof(RedditWorker)} Hosted Service is stopping.");
+        logger.LogInformation($"{nameof(RedditWorker)} Hosted Service is stopping.");
 
         return Task.CompletedTask;
     }

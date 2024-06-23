@@ -17,6 +17,6 @@ public class RedditAuthenticationController : ControllerBase
     [HttpGet(Name = "GetAutorizationCode")]
     public IActionResult Get(string state, string code)
     {
-       return this.Ok(new { Code = code, Sate = state });
+        return this.Ok(new { Code = code, Sate = state });
     }
 }

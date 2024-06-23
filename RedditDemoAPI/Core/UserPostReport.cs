@@ -1,4 +1,4 @@
-﻿namespace RedditDemoAPI;
+﻿namespace RedditDemoAPI.Core;
 
 public class UserPostReport
 {

@@ -1,7 +1,4 @@
-﻿
-
-
-namespace RedditDemoAPI;
+﻿namespace RedditDemoAPI.Core;
 
 public interface IRedditStatsProducer
 {

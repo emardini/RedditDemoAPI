@@ -1,6 +1,6 @@
-﻿namespace RedditDemoAPI;
+﻿namespace RedditDemoAPI.Core;
 
-public class PostStats 
+public class PostStats
 {
     public string PostId { get; set; } = string.Empty;
     public string PostTitle { get; set; } = string.Empty;

@@ -24,11 +24,11 @@ public class RedditStatsService : IRedditStatsProducer, IRedditStatsReader
     public void RemovePost(PostStats stats)
     {
         var postResult = postStats.AddOrUpdate(stats.PostId,
-           new InactivePostStats { PostId = stats.PostId, PostTitle = stats.PostTitle, Score = stats.Score, AddedTimestamp = stats.AddedTimestamp },
+           new InactivePostStats { PostId = stats.PostId, PostTitle = stats.PostTitle, UpVotes = stats.UpVotes, DownVotes = stats.DownVotes, AddedTimestamp = stats.AddedTimestamp },
            (key, oldValue) =>
            {
                //If the post has been deactivated by a previous thread, let's keep it Inactive but increase the score
-               return new InactivePostStats { PostId = stats.PostId, PostTitle = stats.PostTitle, Score = oldValue.Score + stats.Score, AddedTimestamp = stats.AddedTimestamp };
+               return new InactivePostStats { PostId = stats.PostId, PostTitle = stats.PostTitle, UpVotes = stats.UpVotes + oldValue.UpVotes, DownVotes = stats.DownVotes + oldValue.DownVotes, AddedTimestamp = stats.AddedTimestamp };
            });
 
         logger.LogInformation("Post removed: {post}", JsonConvert.SerializeObject(stats));
@@ -37,13 +37,13 @@ public class RedditStatsService : IRedditStatsProducer, IRedditStatsReader
     public void ReportPostsStats(PostStats stats)
     {
         var postResult = postStats.AddOrUpdate(stats.PostId,
-            new PostStats { PostId = stats.PostId, PostTitle = stats.PostTitle, Score = stats.Score, AddedTimestamp = DateTime.UtcNow },
+            new PostStats { PostId = stats.PostId, PostTitle = stats.PostTitle, UpVotes = stats.UpVotes, DownVotes = stats.DownVotes, AddedTimestamp = DateTime.UtcNow },
             (key, oldValue) =>
             {
                 //If the post has been deactivated by a previous thread, let's keep it Inactive but increase the score
                 return oldValue.Status == Status.Active ?
-                    new PostStats { PostId = stats.PostId, PostTitle = stats.PostTitle, Score = oldValue.Score + stats.Score, AddedTimestamp = stats.AddedTimestamp } :
-                    new InactivePostStats { PostId = stats.PostId, PostTitle = stats.PostTitle, Score = oldValue.Score + stats.Score, AddedTimestamp = stats.AddedTimestamp };
+                    new PostStats { PostId = stats.PostId, PostTitle = stats.PostTitle, UpVotes = stats.UpVotes + oldValue.UpVotes, DownVotes = stats.DownVotes + oldValue.DownVotes, AddedTimestamp = stats.AddedTimestamp } :
+                    new InactivePostStats { PostId = stats.PostId, PostTitle = stats.PostTitle, UpVotes = stats.UpVotes + oldValue.UpVotes, DownVotes = stats.DownVotes + oldValue.DownVotes, AddedTimestamp = stats.AddedTimestamp };
             });
         logger.LogInformation("Post reported: {post}", JsonConvert.SerializeObject(stats));
     }
@@ -79,7 +79,7 @@ public class RedditStatsService : IRedditStatsProducer, IRedditStatsReader
         var taken = (int)Math.Ceiling(nbOfItems * 100.00 / percentage);
         return postStats.Values
             .Where(p => p.Status == Status.Active)
-            .OrderByDescending(s => s.Score)
+            .OrderByDescending(s => s.UpVotes)
             .ThenBy(s => s.AddedTimestamp)
             .Take(taken);
     }

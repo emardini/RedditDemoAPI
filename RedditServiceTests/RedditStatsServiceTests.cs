@@ -116,7 +116,7 @@ namespace RedditServiceTests
         {
             // Arrange
             var redditStatsService = new RedditStatsService(_logger);
-            var postStats = new PostStats { PostId = "TestId", PostTitle = "Test Title", Score = 88, AddedTimestamp = DateTime.UtcNow };
+            var postStats = new PostStats { PostId = "TestId", PostTitle = "Test Title", UpVotes = 88, DownVotes = 0, AddedTimestamp = DateTime.UtcNow };
 
             // Act
             redditStatsService.ReportPostsStats(postStats);
@@ -135,9 +135,9 @@ namespace RedditServiceTests
             var redditStatsService = new RedditStatsService(_logger);
 
             // Act
-            Enumerable.Range(1, 100).Select(r => new PostStats { PostId = "TestId", PostTitle = "Test Title", Score = 2, AddedTimestamp = DateTime.UtcNow }).ToList()
+            Enumerable.Range(1, 100).Select(r => new PostStats { PostId = "TestId", PostTitle = "Test Title", UpVotes = 2, AddedTimestamp = DateTime.UtcNow }).ToList()
                 .ForEach(redditStatsService.ReportPostsStats);
-            Enumerable.Range(1, 20).Select(r => new PostStats { PostId = "TestId", PostTitle = "Test Title", Score = -1, AddedTimestamp = DateTime.UtcNow }).ToList()
+            Enumerable.Range(1, 20).Select(r => new PostStats { PostId = "TestId", PostTitle = "Test Title", DownVotes = 1, AddedTimestamp = DateTime.UtcNow }).ToList()
                 .ForEach(redditStatsService.ReportPostsStats);
 
             var userStatsList = redditStatsService.GetTopPostStatsByPercentage(100);
@@ -154,9 +154,9 @@ namespace RedditServiceTests
             var redditStatsService = new RedditStatsService(_logger);
 
             // Act
-            Enumerable.Range(1, 50).Select(r => new PostStats { PostId = "TestId", PostTitle = "Test Title", Score = 2, AddedTimestamp = DateTime.UtcNow })
-            .Union(Enumerable.Range(1, 20).Select(r => new PostStats { PostId = "TestId", PostTitle = "Test Title", Score = -1, AddedTimestamp = DateTime.UtcNow }))
-            .Union(Enumerable.Range(1, 50).Select(r => new PostStats { PostId = "TestId", PostTitle = "Test Title", Score = 2, AddedTimestamp = DateTime.UtcNow }))
+            Enumerable.Range(1, 50).Select(r => new PostStats { PostId = "TestId", PostTitle = "Test Title",UpVotes = 2, AddedTimestamp = DateTime.UtcNow })
+            .Union(Enumerable.Range(1, 20).Select(r => new PostStats { PostId = "TestId", PostTitle = "Test Title", DownVotes = 1, AddedTimestamp = DateTime.UtcNow }))
+            .Union(Enumerable.Range(1, 50).Select(r => new PostStats { PostId = "TestId", PostTitle = "Test Title",UpVotes = 2, AddedTimestamp = DateTime.UtcNow }))
             .AsParallel()
             .ForAll(redditStatsService.ReportPostsStats);
 
@@ -172,7 +172,7 @@ namespace RedditServiceTests
         {
             // Arrange
             var redditStatsService = new RedditStatsService(_logger);
-            var postStats = new PostStats { PostId = "TestId", PostTitle = "Test Title", Score = 88, AddedTimestamp = DateTime.UtcNow };
+            var postStats = new PostStats { PostId = "TestId", PostTitle = "Test Title",UpVotes = 88, AddedTimestamp = DateTime.UtcNow };
 
             // Act
             redditStatsService.ReportPostsStats(postStats);

@@ -1,14 +1,20 @@
 ﻿using Microsoft.OpenApi.Models;
 using Reddit;
 using RedditDemoAPI.Core;
+using System.Reflection;
+using System.Text.Json.Serialization;
 
 namespace RedditDemoAPI;
 
 public static class ServiceConfigurationHelper
 {
     public static IServiceCollection ConfigureDependencies(this IServiceCollection services, IConfiguration configuration)
-    {       
-        services.AddControllers();
+    {
+        services.AddControllers().AddJsonOptions(x =>
+        {
+            // serialize enums as strings in api responses (e.g. Role)
+            x.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        });
         services.AddControllers();
         services.AddEndpointsApiExplorer();
         services.AddHostedService<RedditWorker>();
@@ -31,6 +37,10 @@ public static class ServiceConfigurationHelper
         services.AddSwaggerGen(c =>
         {
             c.SwaggerDoc("v1", new OpenApiInfo { Title = "RedditAPIDemo", Version = "v1" });
+            // Set the comments path for the Swagger JSON and UI.
+            var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+            var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+            c.IncludeXmlComments(xmlPath);
             c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
             {
                 Name = "Authorization",
